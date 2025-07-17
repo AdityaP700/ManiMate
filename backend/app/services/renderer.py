@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+
 import tempfile
 
 def render_manim_code(code: str, scene_name="Scene") -> Path:
