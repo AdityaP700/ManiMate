@@ -1,12 +1,12 @@
 # app/routes/render.py
 
-from fastapi import APIRouter
 from pydantic import BaseModel
 from app.services.llm import generate_manim_code
 from app.tasks import render_manim_scene
 from app.services.validator import validate_manim_code
 from app.utils.helpers import extract_scene_name
 from celery.result import AsyncResult
+from fastapi import APIRouter, HTTPException
 from app.tasks import celery 
 router = APIRouter()
 
@@ -20,13 +20,14 @@ async def render(request: RenderRequest):
     manim_code = generate_manim_code(request.prompt)
 
     if not validate_manim_code(manim_code):
-        return {"error": "Code validation failed."}
+        raise HTTPException(status_code=400, detail="Code validation failed. The AI model may have returned invalid code.")
 
     scene_name = extract_scene_name(manim_code)
 
     task = render_manim_scene.delay(manim_code, scene_name, request.quality)
     
     return {"message": "Rendering started", "scene_name": scene_name, "task_id": task.id}
+
 @router.get("/status/{task_id}")
 async def check_status(task_id: str):
     task_result = AsyncResult(task_id, app=celery)
@@ -43,7 +44,7 @@ async def check_status(task_id: str):
     elif status == "SUCCESS":
         return {
             "status": "SUCCESS",
-            "url": result.get("url")  # ✅ Now using the public URL
+            "url": result.get("url")  
         }
 
     elif status == "FAILURE":
@@ -55,4 +56,4 @@ async def check_status(task_id: str):
     else:
         return {"status": status}
 
-"logs": result.get("logs")
+  
