@@ -15,7 +15,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o")
 
 # Google Cloud Storage
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
-GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME","your-default-name")
 # Make sure GOOGLE_APPLICATION_CREDENTIALS is set in your environment
 
 # Redis and Celery

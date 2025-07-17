@@ -12,6 +12,8 @@ router = APIRouter()
 
 class RenderRequest(BaseModel):
     prompt: str
+    quality: str = "low"  
+
 
 @router.post("/render")
 async def render(request: RenderRequest):
@@ -22,15 +24,15 @@ async def render(request: RenderRequest):
 
     scene_name = extract_scene_name(manim_code)
 
-    task = render_manim_scene.delay(manim_code, scene_name)
+    task = render_manim_scene.delay(manim_code, scene_name, request.quality)
     
     return {"message": "Rendering started", "scene_name": scene_name, "task_id": task.id}
 @router.get("/status/{task_id}")
 async def check_status(task_id: str):
     task_result = AsyncResult(task_id, app=celery)
 
-    status = task_result.status  # e.g., PENDING, STARTED, SUCCESS, FAILURE
-    result = task_result.result  # the actual return value of the task
+    status = task_result.status
+    result = task_result.result
 
     if status == "PENDING":
         return {"status": "PENDING"}
@@ -41,7 +43,7 @@ async def check_status(task_id: str):
     elif status == "SUCCESS":
         return {
             "status": "SUCCESS",
-            "url": result.get("file")  
+            "url": result.get("url")  # ✅ Now using the public URL
         }
 
     elif status == "FAILURE":
@@ -52,3 +54,5 @@ async def check_status(task_id: str):
 
     else:
         return {"status": status}
+
+"logs": result.get("logs")
