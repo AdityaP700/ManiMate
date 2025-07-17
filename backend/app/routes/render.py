@@ -7,7 +7,7 @@ from app.services.validator import validate_manim_code
 from app.utils.helpers import extract_scene_name
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException
-from app.tasks import render_manim_scene, debug_environment
+from app.tasks import render_manim_scene
 from app.tasks import celery 
 router = APIRouter()
 
@@ -56,9 +56,5 @@ async def check_status(task_id: str):
 
     else:
         return {"status": status}
-@router.get("/debug-env")
-async def trigger_debug():
-    """Triggers the environment debug task."""
-    task = debug_environment.delay()
-    return {"message": "Debug task dispatched. Check your Celery worker's console output.", "task_id": task.id}
+
   
