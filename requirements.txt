@@ -1,0 +1,9 @@
+# requirements.txt
+fastapi
+uvicorn
+celery
+redis
+google-cloud-storage
+openai
+google-generativeai
+# Add any other specific libraries you might need

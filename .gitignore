@@ -1,0 +1,5 @@
+/node_modules
+/.env
+/gcp-creds.json
+/venv
+package-lock.json
