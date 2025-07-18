@@ -28,7 +28,7 @@ deepseek_client = OpenAI(
 )
 
 EXAMPLE_MANIM_CODE = '''
-from manim import *
+from manimlib import *
 
 class PiFormulaScene(Scene):
     def construct(self):
@@ -48,7 +48,7 @@ Here is a perfect example of the code structure:
 ---
 
 Constraints:
-- The code must be compatible with manimgl (NOT manimce). The main import is `from manim import *`.
+- The code must be compatible with manimgl (NOT manimce). The main import is `from manimlib import *`.
 - Do NOT import or use modules like `os`, `sys`, or `input`.
 - All animation logic must be inside the `construct()` method of a Scene subclass.
 - The script should only contain the import and the class definition. Do not add any extra code or explanations.
