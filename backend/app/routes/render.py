@@ -33,28 +33,16 @@ async def render(request: RenderRequest):
 async def check_status(task_id: str):
     task_result = AsyncResult(task_id, app=celery)
 
-    status = task_result.status
-    result = task_result.result
-
-    if status == "PENDING":
-        return {"status": "PENDING"}
-
-    elif status == "STARTED":
-        return {"status": "IN_PROGRESS"}
-
-    elif status == "SUCCESS":
-        return {
-            "status": "SUCCESS",
-            "url": result.get("url")  
-        }
-
-    elif status == "FAILURE":
-        return {
-            "status": "FAILURE",
-            "error_log": result.get("message") if isinstance(result, dict) else str(result)
-        }
-
+    if task_result.ready():
+        # The task has finished. Now check the *result* of the task.
+        result = task_result.result
+        if result.get("status") == "success":
+            return {"status": "SUCCESS", "url": result.get("url")}
+        else:
+            # The task finished, but with an internal failure.
+            return {"status": "FAILURE", "error": result.get("message"), "logs": result.get("logs")}
     else:
-        return {"status": status}
+        # The task is still running or pending.
+        return {"status": "IN_PROGRESS"}
 
   

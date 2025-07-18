@@ -10,100 +10,48 @@ from app.storage.gcs import upload_to_gcs
 
 celery = Celery(__name__, broker=REDIS_URL, backend=REDIS_URL)
 
-# app/tasks.py
-# ... (all your imports) ...
-
 @celery.task(bind=True)
 def render_manim_scene(self, manim_code: str, scene_name: str, quality: str = "low"):
     """
-    [FINAL VERSION] This version corrects the AI's import statement from
-    'from manim import *' to 'from manimlib import *' before rendering.
+    [FINAL HEADLESS FIX] This version sets an environment variable to force a
+    headless graphics backend, preventing the low-level crash.
     """
     try:
         python_executable = sys.executable
-
-        # --- THE FINAL, CRITICAL FIX ---
-        # Automatically replace the wrong import with the correct one for manimgl.
+        # Gemini is now generating the correct code, so the replace() is just a safeguard.
         corrected_code = manim_code.replace("from manim import *", "from manimlib import *")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             scene_file_path = os.path.join(temp_dir, "scene.py")
             with open(scene_file_path, "w") as f:
-                f.write(corrected_code) # <-- Use the corrected code
+                f.write(corrected_code)
 
-            QUALITY_FLAGS = {"low": "-ql", "medium": "-qm", "high": "-qh", "production": "-qk"}
-            quality_flag = QUALITY_FLAGS.get(quality, "-ql")
+            # --- THE FINAL, DEFINITIVE FIX ---
+            # Create a clean environment and set the PYGLET_HEADLESS variable.
+            # This tells the graphics library not to look for a real screen.
+            process_env = os.environ.copy()
+            process_env['PYGLET_HEADLESS'] = 'true'
 
-            command = [
-                python_executable,
-                "-m", "manimlib",
-                scene_file_path,
-                scene_name,
-                "-w",
-                "-p",
-                quality_flag,
-            ]
+            # The command itself is correct.
+            command = [python_executable, "-m", "manimlib", scene_file_path, scene_name, "-w", "-p", "-ql"]
 
+            # We can go back to simpler piping now that we know the issue isn't lost logs.
             process = subprocess.Popen(
                 command,
                 cwd=temp_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                encoding='utf-8'
+                encoding='utf-8',
+                env=process_env # <--- Pass the special headless environment
             )
-
+            
             stdout, stderr = process.communicate()
             
-            output_file_path = os.path.join(temp_dir, "media", "videos", "scene", quality_flag.replace('-', ''), f"{scene_name}.mp4")
+            output_file_path = os.path.join(temp_dir, "media", "videos", "scene", "l", f"{scene_name}.mp4")
 
             if not os.path.exists(output_file_path):
-                alt_path = os.path.join(temp_dir, "media", "videos", "scene", "1080p60", f"{scene_name}.mp4")
-                if not os.path.exists(alt_path):
-                    return { "status": "FAILURE", "message": "Render process finished but no output file was found.", "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"}
-                output_file_path = alt_path
-
-            destination_blob_name = f"{scene_name}.mp4"
-            public_url = upload_to_gcs(output_file_path, GCS_BUCKET_NAME, destination_blob_name)
-            return { "status": "success", "url": public_url, "logs": stdout }
-
-    except Exception as e:
-        return { "status": "FAILURE", "message": f"An unexpected error occurred: {str(e)}", "logs": "" }
-    try:
-        python_executable = sys.executable
-        with tempfile.TemporaryDirectory() as temp_dir:
-            scene_file_path = os.path.join(temp_dir, "scene.py")
-            with open(scene_file_path, "w") as f:
-                f.write(manim_code)
-
-            QUALITY_FLAGS = {"low": "-ql", "medium": "-qm", "high": "-qh", "production": "-qk"}
-            quality_flag = QUALITY_FLAGS.get(quality, "-ql")
-
-            command = [
-                python_executable,
-                "-m", "manimlib",
-                scene_file_path,
-                scene_name,
-                "-w",
-                "-p",
-                quality_flag,
-            ]
-
-            process = subprocess.Popen(
-                command,
-                cwd=temp_dir, # Run from the temp directory to keep media files contained
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding='utf-8'
-            )
-
-            stdout, stderr = process.communicate()
-            
-            # Reverting to the output path for the -w flag
-            output_file_path = os.path.join(temp_dir, "media", "videos", "scene", quality_flag.replace('-', ''), f"{scene_name}.mp4")
-
-            if not os.path.exists(output_file_path):
+                # Fallback check for different quality path just in case
                 alt_path = os.path.join(temp_dir, "media", "videos", "scene", "1080p60", f"{scene_name}.mp4")
                 if not os.path.exists(alt_path):
                     return { "status": "FAILURE", "message": "Render process finished but no output file was found.", "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"}
