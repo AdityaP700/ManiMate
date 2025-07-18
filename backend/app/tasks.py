@@ -9,68 +9,50 @@ from app.storage.gcs import upload_to_gcs
 
 celery = Celery(__name__, broker=REDIS_URL, backend=REDIS_URL)
 
+# Your debug_environment task can stay or be removed.
+
 @celery.task(bind=True)
 def render_manim_scene(self, manim_code: str, scene_name: str, quality: str = "low"):
     """
-    Celery task that invokes the python interpreter with the 'manimlib' module,
-    which is correct for the 'manimgl' package.
+    [DIAGNOSTIC VERSION] This task is temporarily modified to run a very
+    simple command to test the ManimGL execution environment itself.
     """
     try:
         python_executable = sys.executable
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            scene_file_path = os.path.join(temp_dir, "scene.py")
-            with open(scene_file_path, "w") as f:
-                f.write(manim_code)
+        # --- TEMPORARY DIAGNOSTIC COMMAND ---
+        # We are ignoring the manim_code for this test and just running
+        # the simplest possible command to see if ManimGL starts correctly.
+        command = [
+            python_executable,
+            "-m", "manimlib",
+            "--version",
+        ]
 
-            QUALITY_FLAGS = {"low": "-ql", "medium": "-qm", "high": "-qh", "production": "-qk"}
-            quality_flag = QUALITY_FLAGS.get(quality, "-ql")
+        print(f"Executing diagnostic command: {' '.join(command)}")
 
-            # --- THE CORRECT COMMAND FOR A CLEAN MANIMGL INSTALLATION ---
-            command = [
-                python_executable,
-                "-m", "manimlib",  # This is the correct module for manimgl
-                "scene.py",
-                scene_name,
-                quality_flag,
-                "-w"              # The -w flag is correct for manimgl
-            ]
+        process = subprocess.Popen(
+            command,
+            # No temp directory or special environment needed for this simple command
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8'
+        )
 
-            process = subprocess.Popen(
-                command,
-                cwd=temp_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding='utf-8'
-            )
-
-            stdout, stderr = process.communicate()
-            
-            output_file_path = os.path.join(temp_dir, "media", "videos", "scene", quality_flag.replace('-', ''), f"{scene_name}.mp4")
-
-            if not os.path.exists(output_file_path):
-                alt_path = os.path.join(temp_dir, "media", "videos", "scene", "1080p60", f"{scene_name}.mp4")
-                if not os.path.exists(alt_path):
-                    return {
-                        "status": "FAILURE",
-                        "message": "Manim render failed. Output file not found after execution.",
-                        "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"
-                    }
-                output_file_path = alt_path
-
-            destination_blob_name = f"{scene_name}.mp4"
-            public_url = upload_to_gcs(output_file_path, GCS_BUCKET_NAME, destination_blob_name)
-
-            return {
-                "status": "success",
-                "url": public_url,
-                "logs": stdout
-            }
+        stdout, stderr = process.communicate()
+        
+        # This task is EXPECTED to fail here because no video is created.
+        # We only care about the logs that it returns.
+        return {
+            "status": "DIAGNOSTIC_FAILURE",
+            "message": "This is an expected failure. Please check the logs.",
+            "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"
+        }
 
     except Exception as e:
         return {
             "status": "FAILURE",
-            "message": f"An unexpected error occurred in the render task: {str(e)}",
+            "message": f"An unexpected error occurred in the diagnostic task: {str(e)}",
             "logs": ""
         }
