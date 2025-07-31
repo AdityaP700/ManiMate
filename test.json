@@ -1,0 +1,38 @@
+[
+  {
+    "prompt": "Show a visual derivation and solution of the quadratic equation ax^2 + bx + c = 0 using the quadratic formula",
+    "quality": "low"
+  },
+  {
+    "prompt": "Animate the graph of y = sin(x), highlighting key points and the wave nature",
+    "quality": "low"
+  },
+  {
+    "prompt": "Demonstrate how the area of a circle is πr^2 by unwrapping the circle into a triangle or rectangle",
+    "quality": "low"
+  },
+  {
+    "prompt": "Show the derivative of y = x^2 as the slope of the tangent line that moves along the curve",
+    "quality": "low"
+  },
+  {
+    "prompt": "Visualize a linear transformation in 2D by applying a matrix to a grid and to vectors, showing how the grid is warped",
+    "quality": "low"
+  },
+  {
+    "prompt": "Animate a histogram showing the results of rolling two dice and the distribution of their sums",
+    "quality": "low"
+  },
+  {
+    "prompt": "Visualize the sum of a geometric series and how its partial sums approach a limit",
+    "quality": "low"
+  },
+  {
+    "prompt": "Provide a visual proof of the Law of Sines in a triangle",
+    "quality": "low"
+  },
+  {
+    "prompt": "Visualize the wave-particle duality by animating a sinusoidal wave moving left to right, while also displaying particles moving along the wave's peaks, illustrating both wave and particle behavior together.",
+    "quality": "low"
+  }
+]
