@@ -1,11 +1,9 @@
 # app/tasks.py
-
 import subprocess
 import tempfile
 import os
 import sys
 import shutil
-import re
 from celery import Celery
 from app.config import REDIS_URL, GCS_BUCKET_NAME
 from app.storage.gcs import upload_to_gcs
@@ -17,88 +15,72 @@ MIKTEX_BIN_PATH = r"C:\Program Files\MiKTeX\miktex\bin\x64"
 @celery.task(bind=True)
 def render_manim_scene(self, manim_code: str, scene_name: str, quality: str = "low"):
     """
-    Renders a Manim scene using the Community Edition with the Cairo software renderer.
-    Supports MiKTeX LaTeX integration and uploads output to GCS.
+    [FINAL CORRECTED VERSION] This version maps the descriptive quality names
+    (e.g., '3b1b-style') to the correct single-letter flags required by ManimCE.
     """
     try:
-        # Check for LaTeX executable
         latex_path = os.path.join(MIKTEX_BIN_PATH, "latex.exe")
         if not os.path.exists(latex_path):
-            return {
-                "status": "FAILURE",
-                "message": "CRITICAL: latex.exe not found.",
-                "logs": "MiKTeX LaTeX not available. Cannot render math text."
-            }
+            return {"status":"Failure", "message":"CRITICAL: latex.exe not found."}
 
         python_executable = sys.executable
         corrected_code = manim_code.replace("from manimlib import *", "from manim import *")
-        
-        # Sanitize scene name
-        scene_name = re.sub(r"[^\w\-]", "_", scene_name)
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Write user code to temp scene file
             scene_file_path = os.path.join(temp_dir, "scene.py")
+            config_path = os.path.join(temp_dir, "manim.cfg")
+            config_content = f"[CLI]\ntex_executable = {latex_path.replace('\\', '/')}\n"
+            
+            with open(config_path, "w") as f:
+                f.write(config_content)
             with open(scene_file_path, "w", encoding="utf-8") as f:
                 f.write(corrected_code)
 
-            # Write manim.cfg with LaTeX path
-            config_path = os.path.join(temp_dir, "manim.cfg")
-            config_content = f"[CLI]\ntex_executable = {latex_path.replace('\\', '/')}\n"
-            with open(config_path, "w") as f:
-                f.write(config_content)
-
-            # Determine output directory
-            QUALITY_DIRS = {
-                "low": "480p15",
-                "medium": "720p30",
-                "high": "1080p60",
-                "production": "4k60"
+            # --- THE FINAL, CRITICAL FIX ---
+            # Map descriptive quality names to Manim's single-letter flags.
+            QUALITY_MAP = {
+                "minimal": "-ql",
+                "draft": "-ql",
+                "low": "-ql",
+                "polished": "-qm",
+                "medium": "-qm",
+                "3b1b-style": "-qh", # 3b1b-style implies high quality
+                "high": "-qh",
+                "production": "-qk" # For 4k if needed
             }
-            quality_dir = QUALITY_DIRS.get(quality, "480p15")
-            output_file_path = os.path.join(
-                temp_dir, "media", "videos", "scene", quality_dir, f"{scene_name}.mp4"
-            )
+            # Default to low quality if an unknown string is passed.
+            quality_flag = QUALITY_MAP.get(quality, "-ql")
 
-            # Build Manim render command
+            # Also map to the correct output directory name
+            QUALITY_DIR_MAP = {
+                "-ql": "480p15",
+                "-qm": "720p30",
+                "-qh": "1080p60",
+                "-qk": "2160p60"
+            }
+            quality_dir = QUALITY_DIR_MAP.get(quality_flag, "480p15")
+            output_file_path = os.path.join(temp_dir, "media", "videos", "scene", quality_dir, f"{scene_name}.mp4")
+
+            # The command is now correct and uses the mapped flag.
             command = [
                 python_executable, "-m", "manim",
-                scene_file_path, scene_name,
-                f"-q{quality[0]}",  # -ql, -qm, -qh, etc.
+                scene_file_path, scene_name, quality_flag,
                 "--renderer=cairo"
             ]
 
             process = subprocess.Popen(
-                command,
-                cwd=temp_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding='utf-8'
+                command, cwd=temp_dir,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, encoding='utf-8'
             )
             stdout, stderr = process.communicate()
-
-            # Check if output file was generated
+            
             if not os.path.exists(output_file_path):
-                return {
-                    "status": "FAILURE",
-                    "message": "Render completed, but the output file path was incorrect or not found.",
-                    "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"
-                }
+                return { "status": "FAILURE", "message": "Render completed, but the output file path was incorrect or not found.", "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"}
 
-            # Upload to GCS
             destination_blob_name = f"{scene_name}.mp4"
             public_url = upload_to_gcs(output_file_path, GCS_BUCKET_NAME, destination_blob_name)
-
-            return {
-                "status": "success",
-                "url": public_url,
-                "logs": f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"
-            }
+            return { "status": "success", "url": public_url, "logs": stdout }
 
     except Exception as e:
-        return {
-            "status": "FAILURE",
-            "message": f"An unexpected error occurred: {str(e)}",
-            "logs": ""
-        }
+        return { "status": "FAILURE", "message": f"An unexpected error occurred: {str(e)}", "logs": "" }

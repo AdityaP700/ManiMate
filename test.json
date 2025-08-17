@@ -35,4 +35,137 @@
     "prompt": "Visualize the wave-particle duality by animating a sinusoidal wave moving left to right, while also displaying particles moving along the wave's peaks, illustrating both wave and particle behavior together.",
     "quality": "low"
   }
+  ,
+  {
+    "id": "quadratic_formula_derivation",
+    "prompt": "Show a visual derivation and solution of the quadratic equation ax² + bx + c = 0 using the quadratic formula, including completing the square",
+    "quality": "polished",
+    "style": "algebraic",
+    "detail_level": "intermediate",
+    "learning_objectives": [
+      "Understand the algebraic manipulation in completing the square",
+      "See how the quadratic formula emerges naturally",
+      "Connect geometric and algebraic representations"
+    ],
+    "expected_elements": ["equation transformation", "completing the square", "formula revelation"]
+  },
+  {
+    "id": "sine_wave_animation",
+    "prompt": "Animate the graph of y = sin(x), highlighting key points (0, π/2, π, 3π/2, 2π) and showing the wave's periodic nature",
+    "quality": "3b1b-style",
+    "style": "calculus",
+    "detail_level": "basic",
+    "learning_objectives": [
+      "Visualize periodic behavior of sine function",
+      "Identify critical points and their significance",
+      "Understand amplitude and wavelength concepts"
+    ],
+    "expected_elements": ["unit circle connection", "wave progression", "critical points"]
+  },
+  {
+    "id": "circle_area_proof",
+    "prompt": "Demonstrate how the area of a circle is πr² by unwrapping the circle into a triangle or rectangle, showing the visual transformation",
+    "quality": "3b1b-style", 
+    "style": "geometric",
+    "detail_level": "intermediate",
+    "learning_objectives": [
+      "Connect circular geometry to familiar shapes",
+      "Understand where π comes from in the formula",
+      "See area as an integral/limit concept"
+    ],
+    "expected_elements": ["circle unwrapping", "triangle formation", "area calculation"]
+  },
+  {
+    "id": "derivative_tangent_slope",
+    "prompt": "Show the derivative of y = x² as the slope of the tangent line that moves dynamically along the curve",
+    "quality": "polished",
+    "style": "calculus", 
+    "detail_level": "intermediate",
+    "learning_objectives": [
+      "Visualize derivative as instantaneous rate of change",
+      "Connect geometric slope to algebraic derivative",
+      "Understand limit process in differentiation"
+    ],
+    "expected_elements": ["moving tangent line", "slope calculation", "derivative function"]
+  },
+  {
+    "id": "linear_transformation_2d",
+    "prompt": "Visualize a 2×2 matrix linear transformation by applying it to a grid and vectors, showing how space warps",
+    "quality": "3b1b-style",
+    "style": "linear-algebra",
+    "detail_level": "advanced", 
+    "learning_objectives": [
+      "Understand linear transformations as space deformations",
+      "See how matrices encode geometric operations",
+      "Connect algebraic matrix operations to visual results"
+    ],
+    "expected_elements": ["grid transformation", "basis vector tracking", "determinant visualization"]
+  },
+  {
+    "id": "dice_probability_histogram",
+    "prompt": "Animate a histogram showing the probability distribution of rolling two dice and summing their values",
+    "quality": "polished",
+    "style": "probability",
+    "detail_level": "basic",
+    "learning_objectives": [
+      "Understand discrete probability distributions",
+      "See how combinations create the bell-shaped curve",
+      "Connect theoretical probability to simulated results"
+    ],
+    "expected_elements": ["animated dice rolling", "histogram building", "probability labels"]
+  },
+  {
+    "id": "geometric_series_convergence", 
+    "prompt": "Visualize the sum of an infinite geometric series (1 + 1/2 + 1/4 + 1/8 + ...) and show how partial sums approach the limit",
+    "quality": "3b1b-style",
+    "style": "calculus",
+    "detail_level": "intermediate",
+    "learning_objectives": [
+      "Understand infinite series convergence",
+      "See geometric representation of series terms",
+      "Connect visual areas to algebraic formulas"
+    ],
+    "expected_elements": ["geometric blocks", "partial sum progression", "limit visualization"]
+  },
+  {
+    "id": "law_of_sines_proof",
+    "prompt": "Provide a visual proof of the Law of Sines (a/sin A = b/sin B = c/sin C) using circumscribed circles",
+    "quality": "polished", 
+    "style": "geometric",
+    "detail_level": "advanced",
+    "learning_objectives": [
+      "Understand relationship between sides and angles in triangles",
+      "See the role of the circumscribed circle",
+      "Connect trigonometry to geometric proofs"
+    ],
+    "expected_elements": ["triangle construction", "circumcircle", "angle-side relationships"]
+  },
+  {
+    "id": "wave_particle_duality",
+    "prompt": "Visualize wave-particle duality by showing a sinusoidal wave with particles moving along the peaks, illustrating both wave and particle behavior",
+    "quality": "3b1b-style",
+    "style": "educational", 
+    "detail_level": "advanced",
+    "learning_objectives": [
+      "Understand dual nature of quantum objects", 
+      "See how wave and particle models coexist",
+      "Connect physics concepts to mathematical representations"
+    ],
+    "expected_elements": ["wave propagation", "particle tracking", "dual representation"],
+    "note": "This crosses into physics but maintains mathematical visualization focus"
+  },
+  {
+    "id": "fourier_series_square_wave",
+    "prompt": "Show how a square wave can be approximated by adding sine waves of different frequencies (Fourier series)",
+    "quality": "3b1b-style",
+    "style": "calculus",
+    "detail_level": "advanced", 
+    "learning_objectives": [
+      "Understand function decomposition into basis functions",
+      "See how infinite series can represent discontinuous functions", 
+      "Connect harmonic analysis to signal processing"
+    ],
+    "expected_elements": ["individual harmonics", "progressive summation", "convergence to square wave"]
+  }
 ]
+
