@@ -3,6 +3,7 @@
 from openai import OpenAI
 import google.generativeai as genai
 import re
+from app.core.logging import logger
 from typing import Dict, Optional, Literal
 from app.config import (
     OPENAI_API_KEY,
@@ -288,7 +289,7 @@ def generate_manim_code(
             
             # Use the user's key if provided, otherwise fall back to the system key from config.py
             user_key = api_keys.get(provider)
-
+            
             if provider == "openai":
                 client = OpenAI(api_key=user_key or OPENAI_API_KEY)
                 response = client.chat.completions.create(...) # your OpenAI call
@@ -326,8 +327,17 @@ def generate_manim_code(
             is_valid, validation_msg = validate_manim_code(code)
             
             if is_valid:
-                print(f"{provider} succeeded with validation.")
-                return {"code": code, "provider_used": provider, "validation_result": validation_msg, "success": True}
+                logger.info(f"'{provider}' succeeded and passed validation.")
+                
+                # --- ADD THIS LOG MESSAGE ---
+                logger.debug(f"--- Generated Code from {provider} ---\n{code}\n--------------------")
+                
+                return {
+                    "code": code,
+                    "provider_used": provider,
+                    "validation_result": validation_msg,
+                    "success": True
+                }
             else:
                 last_error = f"'{provider}' generated invalid code: {validation_msg}"
                 print(last_error)

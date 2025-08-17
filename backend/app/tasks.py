@@ -7,7 +7,7 @@ import shutil
 from celery import Celery
 from app.config import REDIS_URL, GCS_BUCKET_NAME
 from app.storage.gcs import upload_to_gcs
-
+from app.core.logging import logger
 celery = Celery(__name__, broker=REDIS_URL, backend=REDIS_URL)
 
 MIKTEX_BIN_PATH = r"C:\Program Files\MiKTeX\miktex\bin\x64"
@@ -18,6 +18,8 @@ def render_manim_scene(self, manim_code: str, scene_name: str, quality: str = "l
     [FINAL CORRECTED VERSION] This version maps the descriptive quality names
     (e.g., '3b1b-style') to the correct single-letter flags required by ManimCE.
     """
+    logger.info(f"Celery worker received render task for scene: {scene_name}")
+    logger.debug(f"--- Code to be rendered for {scene_name} ---\n{manim_code}\n--------------------")
     try:
         latex_path = os.path.join(MIKTEX_BIN_PATH, "latex.exe")
         if not os.path.exists(latex_path):
